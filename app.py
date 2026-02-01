@@ -400,6 +400,56 @@ def calculate_risk_score(holders: int, liquidity: float, market_cap: float) -> t
         return ("High", "🔴", "#ff4757")
 
 
+def get_price_history(fetcher: DataFetcher, symbol: str, address: str, use_live: bool, days: int = 30) -> pd.DataFrame:
+    """Get price history - live data if available, otherwise sample data"""
+    if use_live:
+        try:
+            # First get the main pool for this token
+            pools = fetcher.get_token_pools(address, limit=1)
+            if pools:
+                pool_address = pools[0].get("id", "").split("_")[-1] if "_" in pools[0].get("id", "") else pools[0].get("attributes", {}).get("address", "")
+                if pool_address:
+                    df = fetcher.get_token_ohlcv(pool_address, timeframe="day", limit=days)
+                    if not df.empty:
+                        return df
+        except Exception:
+            pass
+    # Fallback to sample data
+    return generate_sample_price_history(symbol, days)
+
+
+def get_deployer_activity(fetcher: DataFetcher, use_live: bool, days: int = 30) -> pd.DataFrame:
+    """Get deployer activity - live data if available, otherwise sample data"""
+    if use_live:
+        try:
+            activity_data = []
+            dates = pd.date_range(end=datetime.now(), periods=days, freq="D")
+
+            for version, addr in DEPLOYER_CONTRACTS.items():
+                txs = fetcher.get_deployer_transactions(addr, limit=1000)
+                if txs:
+                    # Group transactions by day
+                    for tx in txs:
+                        tx_date = datetime.fromtimestamp(int(tx.get("timeStamp", 0))).date()
+                        activity_data.append({"date": tx_date, "version": version})
+
+            if activity_data:
+                df = pd.DataFrame(activity_data)
+                # Aggregate by date and version
+                pivot = df.groupby(["date", "version"]).size().unstack(fill_value=0).reset_index()
+                pivot.columns = ["date"] + [f"{v}_deployments" for v in pivot.columns[1:]]
+                if "v3.1_deployments" not in pivot.columns:
+                    pivot["v3.1_deployments"] = 0
+                if "v4.1_deployments" not in pivot.columns:
+                    pivot["v4.1_deployments"] = 0
+                pivot["total_txs"] = pivot["v3.1_deployments"] + pivot["v4.1_deployments"]
+                return pivot.tail(days)
+        except Exception:
+            pass
+    # Fallback to sample data
+    return generate_sample_deployer_activity(days)
+
+
 def main():
     # Initialize data fetcher
     basescan_key = os.getenv("BASESCAN_API_KEY", "")
@@ -559,7 +609,7 @@ def main():
         )
 
         for idx, (_, row) in enumerate(df_tokens.iterrows()):
-            price_df = generate_sample_price_history(row["symbol"], days=30)
+            price_df = get_price_history(fetcher, row["symbol"], row["address"], use_live_data, days=30)
             fig.add_trace(
                 go.Scatter(
                     x=price_df["timestamp"],
@@ -648,7 +698,7 @@ def main():
             st.metric("FDV", format_number(token_data["fdv_usd"]))
 
         # Price chart
-        price_history = generate_sample_price_history(selected_token, days=60)
+        price_history = get_price_history(fetcher, selected_token, token_data["address"], use_live_data, days=60)
 
         fig_price = make_subplots(rows=2, cols=1, shared_xaxes=True,
                                    row_heights=[0.7, 0.3],
@@ -689,7 +739,7 @@ def main():
         st.markdown("#### 🚀 Clanker Deployer Activity")
         st.markdown("Token deployment contracts powering the agent economy")
 
-        deployer_df = generate_sample_deployer_activity(days=30)
+        deployer_df = get_deployer_activity(fetcher, use_live_data, days=30)
 
         # Key deployer metrics
         col1, col2, col3, col4 = st.columns(4)
