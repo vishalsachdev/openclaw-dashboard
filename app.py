@@ -46,6 +46,25 @@ st.markdown("""
             radial-gradient(circle at 80% 80%, rgba(255, 71, 87, 0.05) 0%, transparent 50%);
     }
 
+    /* Fix Streamlit header/toolbar background */
+    header[data-testid="stHeader"] {
+        background: transparent !important;
+    }
+
+    .stAppHeader, .stToolbar {
+        background: transparent !important;
+    }
+
+    /* Hide the top decoration bar if present */
+    .stDeployButton {
+        color: #8892b0 !important;
+    }
+
+    /* Main block container */
+    .block-container {
+        padding-top: 2rem !important;
+    }
+
     /* Main header with glitch effect */
     .main-header {
         font-family: 'JetBrains Mono', monospace;
