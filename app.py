@@ -573,7 +573,7 @@ def main():
 
         fig.update_layout(height=300, showlegend=False)
         apply_chart_theme(fig)
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
     # ========== INVESTOR VIEW ==========
     elif view_mode == "💰 Investor":
@@ -593,7 +593,7 @@ def main():
 
         perf_df.columns = ["Symbol", "Project", "Price", "24h Change", "Market Cap", "Volume", "Holders"]
 
-        st.dataframe(perf_df, use_container_width=True, hide_index=True)
+        st.dataframe(perf_df, width="stretch", hide_index=True)
 
         col1, col2 = st.columns(2)
 
@@ -608,7 +608,7 @@ def main():
             )
             fig_mcap.update_layout(height=350)
             apply_chart_theme(fig_mcap)
-            st.plotly_chart(fig_mcap, use_container_width=True)
+            st.plotly_chart(fig_mcap, width="stretch")
 
         with col2:
             st.markdown("#### Volume vs Market Cap")
@@ -629,7 +629,7 @@ def main():
                 yaxis_title="24h Volume (log)"
             )
             apply_chart_theme(fig_scatter)
-            st.plotly_chart(fig_scatter, use_container_width=True)
+            st.plotly_chart(fig_scatter, width="stretch")
 
         # Individual token deep dive
         st.markdown("---")
@@ -678,7 +678,7 @@ def main():
             xaxis_rangeslider_visible=False
         )
         apply_chart_theme(fig_price)
-        st.plotly_chart(fig_price, use_container_width=True)
+        st.plotly_chart(fig_price, width="stretch")
 
     # ========== BUILDER VIEW ==========
     elif view_mode == "🔧 Builder":
@@ -731,7 +731,7 @@ def main():
             yaxis_title="Deployments"
         )
         apply_chart_theme(fig_deploy, title="Daily Token Deployments by Deployer Version")
-        st.plotly_chart(fig_deploy, use_container_width=True)
+        st.plotly_chart(fig_deploy, width="stretch")
 
         # Deployer addresses
         st.markdown("#### 📍 Deployer Contract Addresses")
@@ -765,7 +765,7 @@ def main():
 
         fig_growth.update_layout(height=350)
         apply_chart_theme(fig_growth, title="Cumulative Token Deployments (30 Days)")
-        st.plotly_chart(fig_growth, use_container_width=True)
+        st.plotly_chart(fig_growth, width="stretch")
 
         # Builder resources
         st.markdown("---")
@@ -828,7 +828,7 @@ def main():
             })
 
         risk_df = pd.DataFrame(risk_data)
-        st.dataframe(risk_df, use_container_width=True, hide_index=True)
+        st.dataframe(risk_df, width="stretch", hide_index=True)
 
         # Risk indicators detail
         col1, col2 = st.columns(2)
@@ -846,7 +846,7 @@ def main():
             )
             fig_holders.update_layout(height=350)
             apply_chart_theme(fig_holders)
-            st.plotly_chart(fig_holders, use_container_width=True)
+            st.plotly_chart(fig_holders, width="stretch")
 
             st.info("""
             **Holder Concentration Risk:**
@@ -870,7 +870,7 @@ def main():
                 yaxis_title="Liquidity (USD)"
             )
             apply_chart_theme(fig_liq)
-            st.plotly_chart(fig_liq, use_container_width=True)
+            st.plotly_chart(fig_liq, width="stretch")
 
             st.warning("""
             **Liquidity Risk Factors:**
